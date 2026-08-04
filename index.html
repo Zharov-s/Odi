@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#061117">
+  <title>Одиссея продлений — курс на 80%</title>
+  <meta name="description" content="Кинематографичный дашборд продлений по направлениям Отель и ФМС.">
+  <meta property="og:title" content="Одиссея продлений — курс на 80%">
+  <meta property="og:description" content="Каждый день приближает флот к Итаке">
+  <meta property="og:image" content="https://zharov-s.github.io/Odi/public/og.png">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="./public/favicon.svg">
+  <link rel="preload" as="image" href="./public/odyssey-route.png">
+  <link rel="stylesheet" href="./app/globals.css">
+  <style>
+    .route-image{background-image:url('./public/odyssey-route.png')!important}
+    .static-loading .refresh-button{animation:spin-soft 1.2s linear infinite}
+    @media(max-width:540px){.route-image{background-position:62% center!important}}
+  </style>
+</head>
+<body>
+  <main class="dashboard-shell static-loading" id="dashboard">
+    <div class="noise"></div>
+    <header class="topbar">
+      <div class="brand"><div class="compass" aria-hidden="true">✥</div><div><span>Одиссея продлений</span><small>Курс на <b data-field="target">81</b>%</small></div></div>
+      <div class="top-metrics">
+        <div class="metric accent"><span>Текущий результат</span><strong><b data-field="percent">41,6</b>% / <b data-field="target">81</b>%</strong><small data-field="stage">Путь между островами</small></div>
+        <div class="metric"><span>Продлено</span><strong data-field="renewed">319</strong><small>из <b data-field="total">766</b> поставок</small></div>
+        <div class="metric"><span>До Итаки осталось</span><strong data-field="remaining">301</strong><small>продление</small></div>
+        <div class="metric"><span>Дней осталось</span><strong data-field="workdays">20</strong><small>рабочих дней</small></div>
+        <div class="metric accent"><span>Прогноз на конец</span><strong><b data-field="forecast">100</b>%</strong><small data-field="forecast-note">курс выдержан</small></div>
+      </div>
+      <button class="refresh-button" id="refresh" aria-label="Обновить данные">↻<span data-field="updated">—:—</span></button>
+    </header>
+
+    <section class="hero-grid">
+      <aside class="navigation panel">
+        <div class="section-head"><div><span class="eyebrow">Сводка курса</span><h2>Навигация</h2></div><span class="status good" id="course-status">По курсу</span></div>
+        <div class="nav-stats">
+          <div><span>Необходимо в день</span><strong data-field="daily">14,4</strong><small>продлений</small></div>
+          <div><span>Текущий темп</span><strong data-field="pace">159,5</strong><small>в рабочий день</small></div>
+          <div><span>Отклонение</span><strong class="positive" data-field="delta">+145,1</strong><small>в день</small></div>
+          <div><span>Расчётное прибытие</span><strong data-field="arrival">До конца месяца</strong><small data-field="month">Август 2026</small></div>
+        </div>
+        <div class="course-message good" id="course-message"><span>✓</span><p>Текущей скорости достаточно для прибытия в Итаку</p></div>
+        <button class="data-warning" id="data-warning" hidden>Показаны последние доступные данные · повторить</button>
+      </aside>
+
+      <section class="route-card panel" aria-label="Маршрут к Итаке">
+        <div class="route-image"></div><div class="route-shade"></div>
+        <div class="route-head"><div><span class="eyebrow">Центральный маршрут</span><h2>Путь к Итаке</h2></div><span class="live-pill"><i></i> Данные Google Sheets</span></div>
+        <div class="route-track route-a"><i id="route-hotel"></i></div>
+        <div class="route-track route-b"><i id="route-fms"></i></div>
+        <div class="ship-marker hotel top" id="ship-hotel"><span class="ship-symbol">⛵</span><span class="ship-copy"><b>Отель</b><em><span data-field="hotel-percent">40,4</span>%</em></span></div>
+        <div class="ship-marker fms bottom" id="ship-fms"><span class="ship-symbol">⛵</span><span class="ship-copy"><b>ФМС</b><em><span data-field="fms-percent">42,5</span>%</em></span></div>
+        <div class="beacon"><span class="beacon-light"></span><b><span data-field="target">81</span>%</b><small>Итака</small></div>
+        <div class="route-stages"><span style="left:6%"><i></i>Старт<em>0%</em></span><span style="left:27%"><i></i>Открытое море<em>20%</em></span><span style="left:48%"><i></i>Острова<em>40%</em></span><span style="left:69%"><i></i>Пролив<em>60%</em></span><span style="left:92%"><i></i>Итака<em><b data-field="target">81</b>%</em></span></div>
+      </section>
+    </section>
+
+    <section class="goal-callout panel"><div class="goal-ring"><span>До Итаки</span><strong data-field="remaining">301</strong><small>продлений</small></div><div><span class="eyebrow" data-field="stage">Путь между островами</span><h2 data-field="stage-note">Экспедиция держит курс на пролив</h2><p>Каждый день приближает флот к Итаке</p></div><div class="goal-numbers"><span><small>Необходимо продлить</small><b data-field="target-count">620</b></span><span><small>Общий флот месяца</small><b data-field="total">766</b></span></div></section>
+
+    <section class="directions-grid" id="directions">
+      <article class="direction-card panel hotel" data-direction="hotel">
+        <header><div class="direction-icon">⛵</div><div><span class="eyebrow">Корабль</span><h3>«Отель»</h3></div><div class="direction-score"><strong><span data-dir="percent">40,4</span>%</strong><span>цель <b data-dir="target">77</b>%</span></div></header>
+        <div class="progress-rail"><i data-dir="rail"></i></div>
+        <div class="direction-grid"><div class="metric"><span>Всего поставок</span><strong data-dir="total">302</strong><small>флот направления</small></div><div class="metric"><span>Продлено</span><strong data-dir="renewed">122</strong><small>вернулись в порт</small></div><div class="metric accent"><span>Осталось</span><strong data-dir="remaining">111</strong><small>до цели</small></div><div class="metric"><span>Прогноз</span><strong><b data-dir="forecast">100</b>%</strong><small>к концу месяца</small></div></div>
+        <div class="channel-grid"><div><span><b>Онлайн</b><small>путь под парусом</small></span><strong data-dir="online">56</strong><em><b data-dir="online-percent">18,5</b>%</em></div><div><span><b>Офлайн</b><small>путь на вёслах</small></span><strong data-dir="offline">66</strong><em><b data-dir="offline-percent">21,9</b>%</em></div></div>
+      </article>
+      <article class="direction-card panel fms" data-direction="fms">
+        <header><div class="direction-icon">⛵</div><div><span class="eyebrow">Корабль</span><h3>«ФМС»</h3></div><div class="direction-score"><strong><span data-dir="percent">42,5</span>%</strong><span>цель <b data-dir="target">83</b>%</span></div></header>
+        <div class="progress-rail"><i data-dir="rail"></i></div>
+        <div class="direction-grid"><div class="metric"><span>Всего поставок</span><strong data-dir="total">464</strong><small>флот направления</small></div><div class="metric"><span>Продлено</span><strong data-dir="renewed">197</strong><small>вернулись в порт</small></div><div class="metric accent"><span>Осталось</span><strong data-dir="remaining">188</strong><small>до цели</small></div><div class="metric"><span>Прогноз</span><strong><b data-dir="forecast">100</b>%</strong><small>к концу месяца</small></div></div>
+        <div class="channel-grid"><div><span><b>Онлайн</b><small>путь под парусом</small></span><strong data-dir="online">90</strong><em><b data-dir="online-percent">19,4</b>%</em></div><div><span><b>Офлайн</b><small>путь на вёслах</small></span><strong data-dir="offline">107</strong><em><b data-dir="offline-percent">23,1</b>%</em></div></div>
+      </article>
+    </section>
+
+    <section class="lower-grid">
+      <article class="panel chart-panel"><div class="section-head"><div><span class="eyebrow">Расчётная траектория</span><h3>Динамика продлений</h3></div><span class="section-badge">Факт + прогноз</span></div><div class="forecast-chart"><div class="target-line" id="target-line"><span>курс <b data-field="target">81</b>%</span></div><div class="bars" id="forecast-bars"></div><div class="chart-axis"><span>1 авг</span><span>сегодня</span><span>31 авг</span></div></div></article>
+      <article class="panel risks-panel"><div class="section-head"><div><span class="eyebrow">Контроль маршрута</span><h3>Штормовые зоны</h3></div><span class="status good" id="weather-status">Спокойно</span></div><div class="risk-list"><div><span>◈</span><p><b>Расстояние до цели</b><small><b data-field="remaining">301</b> поставок</small></p></div><div><span>△</span><p><b>Запас по скорости</b><small data-field="delta">+145,1 в день</small></p></div><div><span>◌</span><p><b>Офлайн-маршрут</b><small><b data-field="offline">173</b> продлений</small></p></div><div><span>✦</span><p><b>Онлайн-маршрут</b><small><b data-field="online">146</b> продлений</small></p></div></div></article>
+      <article class="panel ranking-panel"><div class="section-head"><div><span class="eyebrow">Личный зачёт</span><h3>Экипаж экспедиции</h3></div><span class="section-badge">Топ-5</span></div><div class="ranking-list" id="ranking"><div class="rank-row"><span class="rank-place p1">1</span><div><b>Процкив Ксения</b><small>Капитан экспедиции</small></div><strong>59 215 ₽</strong></div></div></article>
+      <article class="panel log-panel"><div class="section-head"><div><span class="eyebrow">События маршрута</span><h3>Бортовой журнал</h3></div><span class="section-badge">Live</span></div><div class="log-list" id="logbook"></div></article>
+    </section>
+    <footer><span>Источник: Google Sheets · обновление каждые 5 минут</span><span>ОДИССЕЯ ПРОДЛЕНИЙ · <b data-field="month">АВГУСТ 2026</b></span></footer>
+  </main>
+  <script src="./static.js" defer></script>
+</body>
+</html>
