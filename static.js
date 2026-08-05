@@ -54,10 +54,29 @@
     const set = (name, value) => root.querySelectorAll(`[data-dir="${name}"]`).forEach(el => { if (name === 'rail') el.style.width = `${clamp((data.percent / data.targetPercent) * 100)}%`; else el.textContent = value; });
     set('percent', fmt(data.percent, 1)); set('target', fmt(data.targetPercent)); set('total', fmt(data.total)); set('renewed', fmt(data.renewed)); set('remaining', fmt(data.remaining)); set('forecast', fmt(data.forecastPercent, 1)); set('online', fmt(data.online)); set('offline', fmt(data.offline)); set('online-percent', fmt(data.total ? data.online / data.total * 100 : 0, 1)); set('offline-percent', fmt(data.total ? data.offline / data.total * 100 : 0, 1)); set('rail', '');
   }
+  function renderRenewalSummary(rawRows) {
+    const lookup = new Map(rawRows.map(row => [String(row[0] || '').trim().toLowerCase(), row]));
+    const value = (label, column) => num(lookup.get(label.toLowerCase())?.[column]);
+    const rows = [{ name:'Весь флот', column:1 }, { name:'Отель', column:2 }, { name:'ФМС', column:3 }].map(({ name, column }) => {
+      const percent = value('% продлений', column), target = value('цель месяц', column);
+      return { name, total:value('Количество поставок',column), renewed:value('Кол-во продлено',column), online:value('Продлено онлайн',column), offline:value('Продлено офлайн',column), percent:percent <= 1 ? percent * 100 : percent, target:target <= 1 ? target * 100 : target, remaining:Math.max(value('Осталось до цели',column),0) };
+    });
+    document.getElementById('renewal-summary').innerHTML = `<div class="renewal-row renewal-head" role="row"><span>Направление</span><span>Продлено</span><span>Онлайн</span><span>Офлайн</span><span>К цели</span><span>Осталось</span></div>${rows.map(row => `<div class="renewal-row" role="row"><span><b>${esc(row.name)}</b><small>${fmt(row.total)} поставок</small></span><strong>${fmt(row.renewed)}</strong><span>${fmt(row.online)}</span><span>${fmt(row.offline)}</span><span class="summary-progress"><b>${fmt(row.percent,1)}%</b><i><em style="width:${clamp(row.percent / Math.max(row.target,1) * 100)}%"></em></i><small>цель ${fmt(row.target)}%</small></span><strong class="remaining">${fmt(row.remaining)}</strong></div>`).join('')}`;
+  }
+  function renderModules(rawRows) {
+    const totals = new Map(rawRows.map(row => [String(row[0] || '').trim(), row]));
+    const items = rawRows.slice(1).filter(row => { const name = String(row[0] || '').trim(); return name && name !== 'Итоговый показатель' && !name.startsWith('Поставок хотя бы') && !name.startsWith('Всего продано'); }).map(row => ({ name:String(row[0]).trim(), sold:num(row[1]), share:num(row[2]) * 100 }));
+    const supplied = num(totals.get('Поставок хотя бы с одним проданным модулем')?.[1]), suppliedShare = num(totals.get('Поставок хотя бы с одним проданным модулем')?.[2]) * 100, totalSold = num(totals.get('Всего продано единиц модулей')?.[1]), maxSold = Math.max(...items.map(item => item.sold), 1);
+    document.getElementById('modules-total').textContent = `${fmt(totalSold)} ед.`;
+    document.getElementById('modules-supplied').textContent = fmt(supplied);
+    document.getElementById('modules-supplied-share').textContent = `${fmt(suppliedShare,1)}% от поставок`;
+    document.getElementById('modules-sold').textContent = fmt(totalSold);
+    document.getElementById('modules-list').innerHTML = items.map(item => `<div class="module-row"><b>${esc(item.name)}</b><i><em style="width:${item.sold / maxSold * 100}%"></em></i><strong>${fmt(item.sold)}</strong><small>${fmt(item.share,1)}%</small></div>`).join('');
+  }
   async function load() {
     const shell = document.getElementById('dashboard'); const warning = document.getElementById('data-warning'); shell.classList.add('static-loading');
     try {
-      const [goalRaw] = await Promise.all(['Цель август'].map(gviz));
+      const [goalRaw, renewalSummaryRaw, modulesRaw] = await Promise.all(['Цель август', 'Сводная по продлённым поставкам', 'Проданные модули'].map(gviz));
       const goalRows = rows(goalRaw);
       const lookup = new Map(goalRows.map(row => [String(row[0] || '').trim().toLowerCase(), row]));
       const val = (label, column) => num(lookup.get(label.toLowerCase())?.[column]);
@@ -69,6 +88,7 @@
       directions.forEach(d => direction(document.querySelector(`[data-direction="${d.key}"]`), d)); setField('hotel-percent',fmt(directions[0].percent,1)); setField('fms-percent',fmt(directions[1].percent,1));
       directions.forEach(d => { const p = clamp(d.percent / overall.targetPercent * 78, 6, 82); document.getElementById(`ship-${d.key}`).style.left = `${p}%`; document.getElementById(`route-${d.key}`).style.width = `${clamp(d.percent / overall.targetPercent * 100)}%`; });
       const status = document.getElementById('course-status'), message = document.getElementById('course-message'); status.className = `status ${good ? 'good':'risk'}`; status.textContent = good ? 'По курсу':'Отставание'; message.className = `course-message ${good ? 'good':'risk'}`; message.innerHTML = `<span>${good ? '✓':'!'}</span><p>${good ? 'Текущей скорости достаточно для прибытия в Итаку' : `Флот отстаёт от курса на ${fmt(Math.abs(delta),1)} продления в день`}</p>`;
+      renderRenewalSummary(rows(renewalSummaryRaw)); renderModules(rows(modulesRaw));
       warning.hidden = true;
     } catch (error) { warning.hidden = false; }
     finally { shell.classList.remove('static-loading'); }
