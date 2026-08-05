@@ -50,7 +50,7 @@ function weekdays(year: number, month: number) {
 
 export async function GET() {
   try {
-    const [goalRows, hotelRows, fmsRows, upsellRows] = await Promise.all([sheet("Цель август"), sheet("Отель"), sheet("ФМС"), sheet("Личные допродажи")]);
+    const [goalRows, hotelRows, fmsRows, upsellRows, renewalSummaryRows, moduleRows] = await Promise.all([sheet("Цель август"), sheet("Отель"), sheet("ФМС"), sheet("Личные допродажи"), sheet("Сводная по продлённым поставкам"), sheet("Проданные модули")]);
     const lookup = new Map(goalRows.map(row => [String(row[0] || "").trim().toLowerCase(), row]));
     const val = (label: string, column: number) => number(lookup.get(label.toLowerCase())?.[column]);
     const build = (key: "hotel" | "fms", name: string, column: number) => {
@@ -85,8 +85,45 @@ export async function GET() {
       current.amount += number(row[1]); current.count += 1; if (row[2]) current.products.add(String(row[2]).trim()); upsellsMap.set(name, current);
     }
     const upsells = [...upsellsMap.values()].sort((a, b) => b.amount - a.amount).slice(0, 5).map(person => ({ ...person, products: [...person.products] }));
+    const summaryLookup = new Map(renewalSummaryRows.map(row => [String(row[0] || "").trim().toLowerCase(), row]));
+    const summaryValue = (label: string, column: number) => number(summaryLookup.get(label.toLowerCase())?.[column]);
+    const renewalSummary = [
+      { name: "Весь флот", column: 1 },
+      { name: "Отель", column: 2 },
+      { name: "ФМС", column: 3 },
+    ].map(({ name, column }) => {
+      const percent = summaryValue("% продлений", column);
+      const targetPercent = summaryValue("цель месяц", column);
+      return {
+        name,
+        total: summaryValue("Количество поставок", column),
+        renewed: summaryValue("Кол-во продлено", column),
+        online: summaryValue("Продлено онлайн", column),
+        offline: summaryValue("Продлено офлайн", column),
+        percent: percent <= 1 ? percent * 100 : percent,
+        targetPercent: targetPercent <= 1 ? targetPercent * 100 : targetPercent,
+        targetCount: summaryValue("цель месяц, шт", column),
+        remaining: Math.max(summaryValue("Осталось до цели", column), 0),
+        dailyTarget: summaryValue("цель на день", column),
+      };
+    });
+    const modules = moduleRows.slice(1).filter(row => {
+      const name = String(row[0] || "").trim();
+      return name && name !== "Итоговый показатель" && !name.startsWith("Поставок хотя бы") && !name.startsWith("Всего продано");
+    }).map(row => ({
+      name: String(row[0]).trim(),
+      sold: number(row[1]),
+      share: number(row[2]) * 100,
+    }));
+    const moduleSummary = new Map(moduleRows.map(row => [String(row[0] || "").trim(), row]));
+    const soldModules = {
+      items: modules,
+      suppliedWithModule: number(moduleSummary.get("Поставок хотя бы с одним проданным модулем")?.[1]),
+      suppliedWithModulePercent: number(moduleSummary.get("Поставок хотя бы с одним проданным модулем")?.[2]) * 100,
+      totalSold: number(moduleSummary.get("Всего продано единиц модулей")?.[1]),
+    };
     const monthLabel = new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric", timeZone: TZ }).format(now).replace(/^./, char => char.toUpperCase());
-    return NextResponse.json({ updatedAt: now.toISOString(), monthLabel, workdaysLeft: wd.left, elapsedWorkdays: wd.elapsed, totalWorkdays: wd.total, overall, directions, crew, upsells }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+    return NextResponse.json({ updatedAt: now.toISOString(), monthLabel, workdaysLeft: wd.left, elapsedWorkdays: wd.elapsed, totalWorkdays: wd.total, overall, directions, crew, upsells, renewalSummary, soldModules }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 502 });
   }

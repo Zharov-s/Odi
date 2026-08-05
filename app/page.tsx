@@ -19,6 +19,8 @@ type Direction = {
 
 type CrewMember = { name: string; renewals: number; amount: number; direction: string };
 type Upsell = { name: string; amount: number; count: number; products: string[] };
+type RenewalSummary = { name: string; total: number; renewed: number; online: number; offline: number; percent: number; targetPercent: number; targetCount: number; remaining: number; dailyTarget: number };
+type SoldModule = { name: string; sold: number; share: number };
 type DashboardData = {
   updatedAt: string;
   monthLabel: string;
@@ -29,6 +31,8 @@ type DashboardData = {
   directions: Direction[];
   crew: CrewMember[];
   upsells: Upsell[];
+  renewalSummary: RenewalSummary[];
+  soldModules: { items: SoldModule[]; suppliedWithModule: number; suppliedWithModulePercent: number; totalSold: number };
 };
 
 const FALLBACK: DashboardData = {
@@ -44,6 +48,12 @@ const FALLBACK: DashboardData = {
   ],
   crew: [{ name: "Процкив Ксения", renewals: 10, amount: 100000, direction: "Отель · ФМС" }],
   upsells: [{ name: "Процкив Ксения", amount: 59215, count: 5, products: ["МОБ", "МКБ", "РКЛ", "РСП"] }],
+  renewalSummary: [
+    { name: "Весь флот", total: 763, renewed: 334, online: 158, offline: 176, percent: 43.8, targetPercent: 81, targetCount: 618, remaining: 284, dailyTarget: 13.5 },
+    { name: "Отель", total: 302, renewed: 131, online: 64, offline: 67, percent: 43.4, targetPercent: 77, targetCount: 233, remaining: 102, dailyTarget: 5.3 },
+    { name: "ФМС", total: 461, renewed: 203, online: 94, offline: 109, percent: 44, targetPercent: 83, targetCount: 383, remaining: 180, dailyTarget: 9.5 },
+  ],
+  soldModules: { items: [{ name: "РСП", sold: 3, share: 1.5 }, { name: "МКБ", sold: 0, share: 0 }, { name: "МОБ", sold: 0, share: 0 }, { name: "РКЛ", sold: 2, share: 1 }, { name: "ПГ", sold: 0, share: 0 }, { name: "iiko", sold: 0, share: 0 }, { name: "КЭП", sold: 1, share: 0.5 }], suppliedWithModule: 6, suppliedWithModulePercent: 3, totalSold: 7 },
 };
 
 const fmt = (value: number, digits = 0) => new Intl.NumberFormat("ru-RU", { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(value || 0);
@@ -128,6 +138,27 @@ function DirectionCard({ direction }: { direction: Direction }) {
   );
 }
 
+function RenewalSummaryCard({ rows }: { rows: RenewalSummary[] }) {
+  return <article className="renewal-summary panel">
+    <div className="section-head"><div><span className="eyebrow">Google Sheets</span><h2>Сводная по продлённым поставкам</h2></div><span className="section-badge">в реальном времени</span></div>
+    <div className="renewal-table" role="table" aria-label="Сводная по продлённым поставкам">
+      <div className="renewal-row renewal-head" role="row"><span>Направление</span><span>Продлено</span><span>Онлайн</span><span>Офлайн</span><span>К цели</span><span>Осталось</span></div>
+      {rows.map(row => <div className="renewal-row" role="row" key={row.name}>
+        <span><b>{row.name}</b><small>{fmt(row.total)} поставок</small></span><strong>{fmt(row.renewed)}</strong><span>{fmt(row.online)}</span><span>{fmt(row.offline)}</span><span className="summary-progress"><b>{fmt(row.percent, 1)}%</b><i><em style={{ width: `${clamp((row.percent / Math.max(row.targetPercent, 1)) * 100)}%` }} /></i><small>цель {fmt(row.targetPercent)}%</small></span><strong className="remaining">{fmt(row.remaining)}</strong>
+      </div>)}
+    </div>
+  </article>;
+}
+
+function SoldModulesCard({ data }: { data: DashboardData["soldModules"] }) {
+  const maxSold = Math.max(...data.items.map(item => item.sold), 1);
+  return <article className="sold-modules panel">
+    <div className="section-head"><div><span className="eyebrow">Google Sheets</span><h2>Проданные модули</h2></div><span className="section-badge">{fmt(data.totalSold)} ед.</span></div>
+    <div className="module-highlights"><div><span>Поставок с модулем</span><strong>{fmt(data.suppliedWithModule)}</strong><small>{fmt(data.suppliedWithModulePercent, 1)}% от поставок</small></div><div><span>Всего модулей</span><strong>{fmt(data.totalSold)}</strong><small>продано единиц</small></div></div>
+    <div className="module-list">{data.items.map(item => <div className="module-row" key={item.name}><b>{item.name}</b><i><em style={{ width: `${(item.sold / maxSold) * 100}%` }} /></i><strong>{fmt(item.sold)}</strong><small>{fmt(item.share, 1)}%</small></div>)}</div>
+  </article>;
+}
+
 export default function Home() {
   const [data, setData] = useState<DashboardData>(FALLBACK);
   const [loading, setLoading] = useState(true);
@@ -177,6 +208,11 @@ export default function Home() {
       <section className="goal-callout panel"><div className="goal-ring"><span>До Итаки</span><strong>{fmt(data.overall.remaining)}</strong><small>продлений</small></div><div><span className="eyebrow">{stage.title}</span><h2>{stage.note}</h2><p>Каждый день приближает флот к Итаке</p></div><div className="goal-numbers"><span><small>Необходимо продлить</small><b>{fmt(data.overall.targetCount)}</b></span><span><small>Общий флот месяца</small><b>{fmt(data.overall.total)}</b></span></div></section>
 
       <section className="directions-grid">{data.directions.map(direction => <DirectionCard key={direction.key} direction={direction} />)}</section>
+
+      <section className="data-grid">
+        <RenewalSummaryCard rows={data.renewalSummary} />
+        <SoldModulesCard data={data.soldModules} />
+      </section>
 
       <footer><span>Источник: Google Sheets · обновление каждые 5 минут</span><span>ОДИССЕЯ ПРОДЛЕНИЙ · {data.monthLabel.toUpperCase()}</span></footer>
     </main>

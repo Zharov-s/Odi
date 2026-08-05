@@ -25,7 +25,7 @@ button { font: inherit; }
 .dashboard-shell { position: relative; min-height: 100vh; padding: 0 18px 24px; overflow: hidden; }
 .dashboard-shell::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: linear-gradient(90deg, transparent 0 49.8%, rgba(255,255,255,.015) 50%, transparent 50.2%), radial-gradient(circle at 15% 0, rgba(184,121,66,.07), transparent 28%); z-index: 0; }
 .noise { position: fixed; inset: 0; z-index: 20; pointer-events: none; opacity: .22; background: repeating-linear-gradient(118deg, transparent 0 17px, rgba(255,255,255,.012) 18px, transparent 19px 37px); mix-blend-mode: soft-light; }
-.topbar, .hero-grid, .goal-callout, .directions-grid, .lower-grid, footer { position: relative; z-index: 1; max-width: 1720px; margin-inline: auto; }
+.topbar, .hero-grid, .goal-callout, .directions-grid, .lower-grid, .data-grid, footer { position: relative; z-index: 1; max-width: 1720px; margin-inline: auto; }
 .panel { background: linear-gradient(145deg, rgba(13, 35, 45, .94), rgba(6, 19, 27, .94)); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 18px 55px rgba(0, 4, 8, .24), inset 0 1px rgba(255,255,255,.025); }
 .eyebrow { display: block; margin-bottom: 5px; color: var(--gold); font-size: 10px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
 h2, h3, p { margin: 0; }
@@ -149,6 +149,34 @@ h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 500; lette
 .channel-grid strong { font-family: Georgia, serif; font-size: 18px; font-weight: 500; }
 .channel-grid em { color: var(--muted); font-size: 9px; font-style: normal; text-align: right; }
 
+.data-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(320px, .85fr); gap: 14px; margin-top: 14px; }
+.renewal-summary, .sold-modules { padding: 19px 20px; }
+.renewal-table { margin-top: 15px; border-top: 1px solid var(--line); }
+.renewal-row { display: grid; grid-template-columns: minmax(110px, 1.35fr) repeat(3, .7fr) minmax(130px, 1.25fr) .7fr; align-items: center; gap: 10px; min-height: 57px; border-bottom: 1px solid var(--line); }
+.renewal-row > span, .renewal-row > strong { min-width: 0; color: #becbc8; font-size: 11px; font-weight: 500; }
+.renewal-row > span:first-child b, .renewal-row > span:first-child small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.renewal-row > span:first-child b { color: #e1e7e2; font-size: 11px; }
+.renewal-row > span:first-child small, .summary-progress small { margin-top: 3px; color: var(--muted); font-size: 8px; }
+.renewal-row > strong { color: var(--gold-light); font-family: Georgia, serif; font-size: 18px; }
+.renewal-row > strong.remaining { color: #e4e8e3; }
+.renewal-head { min-height: 30px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.renewal-head > span { color: inherit; font-size: inherit; }
+.summary-progress b, .summary-progress small { display: block; }
+.summary-progress b { color: var(--gold); font-family: Georgia, serif; font-size: 13px; font-weight: 500; }
+.summary-progress i, .module-row > i { display: block; height: 4px; margin-top: 4px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.08); }
+.summary-progress i em, .module-row > i em { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7e4935, var(--gold)); box-shadow: 0 0 9px rgba(215,175,105,.4); }
+.module-highlights { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; margin-top: 15px; }
+.module-highlights > div { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(3,13,19,.28); }
+.module-highlights span, .module-highlights strong, .module-highlights small { display: block; }
+.module-highlights span, .module-highlights small { color: var(--muted); font-size: 8px; text-transform: uppercase; }
+.module-highlights strong { margin: 4px 0 2px; color: var(--gold-light); font-family: Georgia, serif; font-size: 25px; font-weight: 500; }
+.module-list { margin-top: 12px; }
+.module-row { display: grid; grid-template-columns: 36px 1fr 24px 38px; align-items: center; gap: 8px; min-height: 29px; border-top: 1px solid var(--line); }
+.module-row b { color: #dce3de; font-size: 10px; }
+.module-row > i { margin: 0; }
+.module-row strong { color: var(--gold-light); font-family: Georgia, serif; font-size: 14px; font-weight: 500; text-align: right; }
+.module-row small { color: var(--muted); font-size: 8px; text-align: right; }
+
 .lower-grid { display: grid; grid-template-columns: 1.25fr .8fr 1.15fr 1fr; gap: 14px; margin-top: 14px; }
 .lower-grid > article { min-height: 305px; padding: 19px 20px; }
 .forecast-chart { position: relative; height: 215px; margin-top: 18px; padding: 10px 8px 25px; border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); background: repeating-linear-gradient(0deg, transparent 0 41px, rgba(155,178,181,.07) 42px), repeating-linear-gradient(90deg, transparent 0 54px, rgba(155,178,181,.045) 55px); }
@@ -192,6 +220,7 @@ footer { display: flex; justify-content: space-between; gap: 20px; padding: 18px
   .topbar { grid-template-columns: minmax(240px, .9fr) minmax(600px, 2.4fr) auto; }
   .top-metrics .metric { padding-inline: 12px; }
   .lower-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .data-grid { grid-template-columns: 1fr; }
   .lower-grid > article { min-height: 290px; }
 }
 
@@ -228,6 +257,7 @@ footer { display: flex; justify-content: space-between; gap: 20px; padding: 18px
   .goal-numbers { grid-column: 1 / -1; justify-content: space-around; padding-top: 10px; border-top: 1px solid var(--line); }
   .directions-grid { grid-template-columns: 1fr; }
   .lower-grid { grid-template-columns: 1fr; }
+  .data-grid { grid-template-columns: 1fr; }
   .lower-grid > article { min-height: 0; }
 }
 
@@ -263,6 +293,9 @@ footer { display: flex; justify-content: space-between; gap: 20px; padding: 18px
   .direction-grid .metric:nth-child(4) { border-top: 1px solid var(--line); }
   .channel-grid { grid-template-columns: 1fr; }
   .lower-grid > article { padding-inline: 14px; }
+  .renewal-summary, .sold-modules { padding-inline: 14px; }
+  .renewal-row { grid-template-columns: minmax(90px, 1.2fr) repeat(3, .65fr) minmax(90px, 1fr); gap: 6px; }
+  .renewal-row > :last-child { display: none; }
   footer { flex-direction: column; gap: 6px; }
 }
 
