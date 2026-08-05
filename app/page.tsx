@@ -128,57 +128,6 @@ function DirectionCard({ direction }: { direction: Direction }) {
   );
 }
 
-function ForecastChart({ data }: { data: DashboardData }) {
-  const points = Array.from({ length: 12 }, (_, index) => {
-    const day = (index / 11) * data.totalWorkdays;
-    const pace = data.overall.renewed / Math.max(data.elapsedWorkdays, 1);
-    return clamp(((pace * day) / Math.max(data.overall.total, 1)) * 100, 0, 120);
-  });
-  const max = Math.max(100, ...points);
-  return (
-    <div className="forecast-chart" aria-label="Расчётная динамика продлений">
-      <div className="target-line" style={{ bottom: `${(data.overall.targetPercent / max) * 100}%` }}><span>курс {fmt(data.overall.targetPercent)}%</span></div>
-      <div className="bars">{points.map((p, i) => <i key={i} style={{ height: `${(p / max) * 100}%` }} className={i <= Math.round((data.elapsedWorkdays / data.totalWorkdays) * 11) ? "actual" : "forecast"} />)}</div>
-      <div className="chart-axis"><span>1 авг</span><span>сегодня</span><span>31 авг</span></div>
-    </div>
-  );
-}
-
-function Ranking({ data }: { data: DashboardData }) {
-  return (
-    <article className="panel ranking-panel">
-      <div className="section-head"><div><span className="eyebrow">Личный зачёт</span><h3>Экипаж экспедиции</h3></div><span className="section-badge">Топ-5</span></div>
-      <div className="ranking-list">
-        {data.upsells.slice(0, 5).map((member, index) => (
-          <div className="rank-row" key={member.name}>
-            <span className={`rank-place p${index + 1}`}>{index + 1}</span>
-            <div><b>{member.name}</b><small>{index === 0 ? "Капитан экспедиции" : `${member.count} допродаж · ${member.products.slice(0, 3).join(", ")}`}</small></div>
-            <strong>{money(member.amount)}</strong>
-          </div>
-        ))}
-        {!data.upsells.length && <div className="empty-state">В журнале допродаж пока нет записей.</div>}
-      </div>
-    </article>
-  );
-}
-
-function Logbook({ data }: { data: DashboardData }) {
-  const hotel = data.directions.find(d => d.key === "hotel") || data.directions[0];
-  const fms = data.directions.find(d => d.key === "fms") || data.directions[1];
-  const events = [
-    { icon: "✦", time: "Текущий курс", text: `Продлено ${fmt(data.overall.renewed)} из ${fmt(data.overall.targetCount)} необходимых поставок` },
-    { icon: "⚓", time: "Корабль «Отель»", text: hotel ? `Достиг отметки ${fmt(hotel.percent, 1)}% · осталось ${fmt(hotel.remaining)}` : "Данные уточняются" },
-    { icon: "≋", time: "Корабль «ФМС»", text: fms ? `Достиг отметки ${fmt(fms.percent, 1)}% · осталось ${fmt(fms.remaining)}` : "Данные уточняются" },
-    { icon: "◎", time: "Прогноз прибытия", text: data.overall.forecastPercent >= data.overall.targetPercent ? "Скорости достаточно для прибытия в Итаку" : `Прогноз ${fmt(data.overall.forecastPercent, 1)}% — курс требует усиления` },
-  ];
-  return (
-    <article className="panel log-panel">
-      <div className="section-head"><div><span className="eyebrow">События маршрута</span><h3>Бортовой журнал</h3></div><span className="section-badge">Live</span></div>
-      <div className="log-list">{events.map((event, i) => <div className="log-row" key={i}><span>{event.icon}</span><div><small>{event.time}</small><b>{event.text}</b></div></div>)}</div>
-    </article>
-  );
-}
-
 export default function Home() {
   const [data, setData] = useState<DashboardData>(FALLBACK);
   const [loading, setLoading] = useState(true);
@@ -229,12 +178,6 @@ export default function Home() {
 
       <section className="directions-grid">{data.directions.map(direction => <DirectionCard key={direction.key} direction={direction} />)}</section>
 
-      <section className="lower-grid">
-        <article className="panel chart-panel"><div className="section-head"><div><span className="eyebrow">Расчётная траектория</span><h3>Динамика продлений</h3></div><span className="section-badge">Факт + прогноз</span></div><ForecastChart data={data} /></article>
-        <article className="panel risks-panel"><div className="section-head"><div><span className="eyebrow">Контроль маршрута</span><h3>Штормовые зоны</h3></div><span className={paceDelta >= 0 ? "status good" : "status risk"}>{paceDelta >= 0 ? "Спокойно" : "Внимание"}</span></div><div className="risk-list"><div><span>◈</span><p><b>Расстояние до цели</b><small>{fmt(data.overall.remaining)} поставок</small></p></div><div><span>△</span><p><b>Запас по скорости</b><small>{paceDelta >= 0 ? `+${fmt(paceDelta, 1)} в день` : `${fmt(paceDelta, 1)} в день`}</small></p></div><div><span>◌</span><p><b>Офлайн-маршрут</b><small>{fmt(data.overall.offline)} продлений</small></p></div><div><span>✦</span><p><b>Онлайн-маршрут</b><small>{fmt(data.overall.online)} продлений</small></p></div></div></article>
-        <Ranking data={data} />
-        <Logbook data={data} />
-      </section>
       <footer><span>Источник: Google Sheets · обновление каждые 5 минут</span><span>ОДИССЕЯ ПРОДЛЕНИЙ · {data.monthLabel.toUpperCase()}</span></footer>
     </main>
   );
