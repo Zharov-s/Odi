@@ -62,9 +62,9 @@
     ].map(([label, fallback]) => [label, value(label, 1, fallback)]);
     const results = [['Увеличение','148','72,90%'], ['Снижение','27','13,30%'], ['Без изменений','28','13,80%'], ['Итого','203','100,00%']].map(([label, count, share]) => [label, value(label, 4, count), value(label, 5, share)]);
     const factors = [['Изменение цены','162','497 240,33 ₽'], ['Изменение модификаторов','17','147 863,92 ₽'], ['Изменение скидки','56','-12 799,36 ₽'], ['Изменение длительности','10','-45 264,67 ₽'], ['Нераспределенное расхождение','', '9 407,71 ₽'], ['Итого изменение тарифа','', '596 447,93 ₽']].map(([label, count, amount]) => [label, value(label, 1, count), value(label, 2, amount)]);
-    document.getElementById('financial-metrics').innerHTML = metrics.map(([label, amount]) => `<div class="financial-metric"><span>${esc(label)}</span><strong>${esc(amount)}</strong></div>`).join('');
-    document.getElementById('financial-results').innerHTML = results.map(([label, count, share]) => `<div class="financial-result"><b>${esc(label)}</b><strong>${esc(count)}</strong><small>${esc(share)}</small></div>`).join('');
-    document.getElementById('financial-factors').innerHTML = factors.map(([label, count, amount]) => `<div class="financial-factor"><b>${esc(label)}</b><span>${count ? `${esc(count)} поставок` : ''}</span><strong>${esc(amount)}</strong></div>`).join('');
+    document.getElementById('financial-metrics').innerHTML = `<table class="financial-table"><thead><tr><th>Показатель</th><th>Значение</th></tr></thead><tbody>${metrics.map(([label, amount]) => `<tr><td>${esc(label)}</td><td>${esc(amount)}</td></tr>`).join('')}</tbody></table>`;
+    document.getElementById('financial-results').innerHTML = `<table class="financial-table"><thead><tr><th>Результат</th><th>Поставок</th><th>Доля</th></tr></thead><tbody>${results.map(([label, count, share]) => `<tr><td>${esc(label)}</td><td>${esc(count)}</td><td>${esc(share)}</td></tr>`).join('')}</tbody></table>`;
+    document.getElementById('financial-factors').innerHTML = `<table class="financial-table"><thead><tr><th>Фактор изменения</th><th>Поставок с влиянием</th><th>Финансовый эффект, ₽</th></tr></thead><tbody>${factors.map(([label, count, amount]) => `<tr><td>${esc(label)}</td><td>${esc(count)}</td><td class="${String(amount).startsWith('-') ? 'negative' : ''}">${esc(amount)}</td></tr>`).join('')}</tbody></table>`;
   }
   function renderModules(rawRows) {
     const totals = new Map(rawRows.map(row => [String(row[0] || '').trim(), row]));
