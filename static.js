@@ -56,12 +56,15 @@
   }
   function renderRenewalSummary(rawRows) {
     const lookup = new Map(rawRows.map(row => [String(row[0] || '').trim().toLowerCase(), row]));
-    const value = (label, column) => num(lookup.get(label.toLowerCase())?.[column]);
-    const rows = [{ name:'Весь флот', column:1 }, { name:'Отель', column:2 }, { name:'ФМС', column:3 }].map(({ name, column }) => {
-      const percent = value('% продлений', column), target = value('цель месяц', column);
-      return { name, total:value('Количество поставок',column), renewed:value('Кол-во продлено',column), online:value('Продлено онлайн',column), offline:value('Продлено офлайн',column), percent:percent <= 1 ? percent * 100 : percent, target:target <= 1 ? target * 100 : target, remaining:Math.max(value('Осталось до цели',column),0) };
-    });
-    document.getElementById('renewal-summary').innerHTML = `<div class="renewal-row renewal-head" role="row"><span>Направление</span><span>Продлено</span><span>Онлайн</span><span>Офлайн</span><span>К цели</span><span>Осталось</span></div>${rows.map(row => `<div class="renewal-row" role="row"><span><b>${esc(row.name)}</b><small>${fmt(row.total)} поставок</small></span><strong>${fmt(row.renewed)}</strong><span>${fmt(row.online)}</span><span>${fmt(row.offline)}</span><span class="summary-progress"><b>${fmt(row.percent,1)}%</b><i><em style="width:${clamp(row.percent / Math.max(row.target,1) * 100)}%"></em></i><small>цель ${fmt(row.target)}%</small></span><strong class="remaining">${fmt(row.remaining)}</strong></div>`).join('')}`;
+    const value = (label, column, fallback) => lookup.get(label.toLowerCase())?.[column] || fallback;
+    const metrics = [
+      ['Количество продленных поставок', '203'], ['Сумма тарифов ДО', '4 839 777,29 ₽'], ['Сумма тарифов ПОСЛЕ', '5 436 225,22 ₽'], ['Чистое изменение', '596 447,93 ₽'], ['Поставок с увеличением', '148'], ['Сумма увеличения', '815 629,31 ₽'], ['Поставок со снижением', '27'], ['Сумма снижения', '-219 181,38 ₽'], ['Без изменения тарифа', '28'],
+    ].map(([label, fallback]) => [label, value(label, 1, fallback)]);
+    const results = [['Увеличение','148','72,90%'], ['Снижение','27','13,30%'], ['Без изменений','28','13,80%'], ['Итого','203','100,00%']].map(([label, count, share]) => [label, value(label, 4, count), value(label, 5, share)]);
+    const factors = [['Изменение цены','162','497 240,33 ₽'], ['Изменение модификаторов','17','147 863,92 ₽'], ['Изменение скидки','56','-12 799,36 ₽'], ['Изменение длительности','10','-45 264,67 ₽'], ['Нераспределенное расхождение','', '9 407,71 ₽'], ['Итого изменение тарифа','', '596 447,93 ₽']].map(([label, count, amount]) => [label, value(label, 1, count), value(label, 2, amount)]);
+    document.getElementById('financial-metrics').innerHTML = metrics.map(([label, amount]) => `<div class="financial-metric"><span>${esc(label)}</span><strong>${esc(amount)}</strong></div>`).join('');
+    document.getElementById('financial-results').innerHTML = results.map(([label, count, share]) => `<div class="financial-result"><b>${esc(label)}</b><strong>${esc(count)}</strong><small>${esc(share)}</small></div>`).join('');
+    document.getElementById('financial-factors').innerHTML = factors.map(([label, count, amount]) => `<div class="financial-factor"><b>${esc(label)}</b><span>${count ? `${esc(count)} поставок` : ''}</span><strong>${esc(amount)}</strong></div>`).join('');
   }
   function renderModules(rawRows) {
     const totals = new Map(rawRows.map(row => [String(row[0] || '').trim(), row]));
@@ -76,7 +79,7 @@
   async function load() {
     const shell = document.getElementById('dashboard'); const warning = document.getElementById('data-warning'); shell.classList.add('static-loading');
     try {
-      const [goalRaw, renewalSummaryRaw, modulesRaw] = await Promise.all(['Цель август', 'Сводная по продлённым поставкам', 'Проданные модули'].map(gviz));
+      const [goalRaw, renewalSummaryRaw, modulesRaw] = await Promise.all(['Цель август', 'Сводная по продленным поставкам', 'Проданные модули'].map(gviz));
       const goalRows = rows(goalRaw);
       const lookup = new Map(goalRows.map(row => [String(row[0] || '').trim().toLowerCase(), row]));
       const val = (label, column) => num(lookup.get(label.toLowerCase())?.[column]);
